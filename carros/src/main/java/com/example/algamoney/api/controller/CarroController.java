@@ -3,6 +3,8 @@ package com.example.algamoney.api.controller;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -30,8 +32,9 @@ public class CarroController {
 	 * @return uma lista de carros
 	 */
 	@GetMapping
-	public Iterable<Carro> get() {
-		return carroManager.getCarroFake();
+	public ResponseEntity<Iterable<Carro>> get() {
+		return ResponseEntity.ok(carroManager.getCarroFake());
+		//return new ResponseEntity<>(carroManager.getCarroFake(), HttpStatus.OK);
 	}
 
 	/**
@@ -39,8 +42,13 @@ public class CarroController {
 	 * @return retorna um carro pelo id
 	 */
 	@GetMapping("/{id}")
-	public Optional<Carro> get(@PathVariable("id") Long id) {
-		return carroManager.getCarroById(id);
+	public ResponseEntity get(@PathVariable("id") Long id) {
+		Optional<Carro> carro = carroManager.getCarroById(id);
+		if(carro.isPresent()) {
+			return ResponseEntity.ok(carro.get());
+		}else {
+			return ResponseEntity.notFound().build();
+		}
 	}
 
 	/**

@@ -1,5 +1,6 @@
 package com.example.algamoney.api.Manager;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,7 +46,7 @@ public class CarroManager {
 	 * @param tipo
 	 * @return
 	 */
-	public Iterable<Carro> getCarroByTipo(String tipo) {
+	public List<Carro> getCarroByTipo(String tipo) {
 		return carroReposytory.findByTipo(tipo);
 	}
 
