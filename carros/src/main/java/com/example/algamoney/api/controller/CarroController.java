@@ -1,9 +1,10 @@
 package com.example.algamoney.api.controller;
 
+import java.net.URI;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,12 +14,15 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.example.algamoney.api.Manager.CarroManager;
 import com.example.algamoney.api.domain.Carro;
+import com.example.algamoney.api.domain.dto.CarroDTO;
 
 /**
- * RestController Carros 
+ * RestController Carros
+ * 
  * @author Marcos Barbosa Evangelista email evangelistamarcos99@gmail.com
  */
 
@@ -31,10 +35,10 @@ public class CarroController {
 	/**
 	 * @return uma lista de carros
 	 */
-	@GetMapping
-	public ResponseEntity<Iterable<Carro>> get() {
-		return ResponseEntity.ok(carroManager.getCarroFake());
-		//return new ResponseEntity<>(carroManager.getCarroFake(), HttpStatus.OK);
+	@GetMapping("/lista/carros")
+	public ResponseEntity<List<CarroDTO>> get() {
+		return ResponseEntity.ok(carroManager.getCarros());
+		// return new ResponseEntity<>(carroManager.getCarroFake(), HttpStatus.OK);
 	}
 
 	/**
@@ -43,10 +47,10 @@ public class CarroController {
 	 */
 	@GetMapping("/{id}")
 	public ResponseEntity get(@PathVariable("id") Long id) {
-		Optional<Carro> carro = carroManager.getCarroById(id);
-		if(carro.isPresent()) {
+		Optional<CarroDTO> carro = carroManager.getCarroById(id);
+		if (carro.isPresent()) {
 			return ResponseEntity.ok(carro.get());
-		}else {
+		} else {
 			return ResponseEntity.notFound().build();
 		}
 	}
@@ -57,39 +61,54 @@ public class CarroController {
 	 * @return retorna uma lista de tipo de carro
 	 */
 	@GetMapping("/tipo/{tipo}")
-	public Iterable<Carro> getCarrosByTipo(@PathVariable("tipo") String tipo) {
-		return carroManager.getCarroByTipo(tipo);
+	public ResponseEntity<List<CarroDTO>> getCarrosByTipo(@PathVariable("tipo") String tipo) {
+		List<CarroDTO> carros = carroManager.getCarroByTipo(tipo);
+		return carros.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(carros);
+
 	}
-	
+
 	/**
 	 * 
 	 * @param carro
 	 * @return retorna um carro salvo
 	 */
-	@PostMapping
-	public String post(@RequestBody Carro carro) {
-	Carro c =	carroManager.save(carro);
-	return "carro salvo com sucesso: " + c.getId();
-		
+	@PostMapping("/salvando")
+	public ResponseEntity post(@RequestBody Carro carro) {
+		try {
+			CarroDTO c = carroManager.insert(carro);
+
+			URI location = getUri(c.getId());
+
+			return ResponseEntity.created(location).build();
+		} catch (Exception ex) {
+			return ResponseEntity.badRequest().build();
+		}
 	}
+
+	private URI getUri(Long id) {
+		return ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(id).toUri();
+	}
+
 	/**
 	 * 
 	 * @param id
 	 * @param carro
-	 * @return Atualizar um carro 
+	 * @return Atualizar um carro
 	 */
 	@PutMapping("/{id}")
-	public String put(@PathVariable("id") Long id, @RequestBody Carro carro) {
-		Carro c = carroManager.update(carro, id);
-		
-		return "Carro Atualizado Com sucesso" + c.getId();	
-		}
+	public ResponseEntity put(@PathVariable("id") Long id, @RequestBody Carro carro) {
+		carro.setId(id);
+		CarroDTO c = carroManager.update(carro, id);
+		return c != null ? ResponseEntity.ok(c) : ResponseEntity.notFound().build();
+	}
 
 	@DeleteMapping("/{id}")
-	public String delete(@PathVariable ("id") Long id) {
-		carroManager.delete(id);
-		return "Carro deletado com sucesso";
-		
-	}
-	
+	public ResponseEntity delete(@PathVariable("id") Long id) {
+		boolean ok = carroManager.delete(id);
+		return ok ?
+				ResponseEntity.ok().build() : 
+					ResponseEntity.notFound().build();
+
 }
+}
+
