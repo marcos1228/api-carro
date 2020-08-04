@@ -111,11 +111,7 @@ public class CarroManager {
 	 * @param id
 	 * @return
 	 */
-	public boolean delete(Long id) {
-		if (getCarroById(id).isPresent()) {
-			carroReposytory.deleteById(id);
-			return true;
-		}
-		return false;
+	public void delete(Long id) {
+		carroReposytory.deleteById(id);
 	}
 }

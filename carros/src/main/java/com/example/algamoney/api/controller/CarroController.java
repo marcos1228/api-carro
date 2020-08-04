@@ -27,7 +27,7 @@ import com.example.algamoney.api.domain.dto.CarroDTO;
  */
 
 @RestController
-@RequestMapping("/api/v1/carros")
+@RequestMapping("/api/v1/carro")
 public class CarroController {
 	@Autowired
 	private CarroManager carroManager;
@@ -45,8 +45,8 @@ public class CarroController {
 	 * @param id
 	 * @return retorna um carro pelo id
 	 */
-	@GetMapping("/{id}")
-	public ResponseEntity get(@PathVariable("id") Long id) {
+	@GetMapping("buscar/carro/por/{id}")
+	public ResponseEntity<CarroDTO> get(@PathVariable("id") Long id) {
 		Optional<CarroDTO> carro = carroManager.getCarroById(id);
 		if (carro.isPresent()) {
 			return ResponseEntity.ok(carro.get());
@@ -73,16 +73,13 @@ public class CarroController {
 	 * @return retorna um carro salvo
 	 */
 	@PostMapping("/salvando")
-	public ResponseEntity post(@RequestBody Carro carro) {
-		try {
-			CarroDTO c = carroManager.insert(carro);
+	public ResponseEntity<?> post(@RequestBody Carro carro) {
 
-			URI location = getUri(c.getId());
+		CarroDTO c = carroManager.insert(carro);
 
-			return ResponseEntity.created(location).build();
-		} catch (Exception ex) {
-			return ResponseEntity.badRequest().build();
-		}
+		URI location = getUri(c.getId());
+		System.out.println("Carro salvo com Sucesso");
+		return ResponseEntity.created(location).build();
 	}
 
 	private URI getUri(Long id) {
@@ -95,20 +92,17 @@ public class CarroController {
 	 * @param carro
 	 * @return Atualizar um carro
 	 */
-	@PutMapping("/{id}")
-	public ResponseEntity put(@PathVariable("id") Long id, @RequestBody Carro carro) {
+	@PutMapping("/atualizando/{id}")
+	public ResponseEntity<?> put(@PathVariable("id") Long id, @RequestBody Carro carro) {
 		carro.setId(id);
 		CarroDTO c = carroManager.update(carro, id);
 		return c != null ? ResponseEntity.ok(c) : ResponseEntity.notFound().build();
 	}
 
 	@DeleteMapping("/{id}")
-	public ResponseEntity delete(@PathVariable("id") Long id) {
-		boolean ok = carroManager.delete(id);
-		return ok ?
-				ResponseEntity.ok().build() : 
-					ResponseEntity.notFound().build();
+	public ResponseEntity<?> delete(@PathVariable("id") Long id) {
+		carroManager.delete(id);
+		return ResponseEntity.ok().build();
 
+	}
 }
-}
-
